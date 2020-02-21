@@ -1,4 +1,4 @@
 Header header
 
-unit8[] channel
+uint8[] channel
 

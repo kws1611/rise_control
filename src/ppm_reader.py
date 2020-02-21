@@ -5,7 +5,7 @@ import math
 import pigpio # http://abyz.co.uk/rpi/pigpio/python.html
 import rospy
 import numpy as np
-from ppm_.msg import ppm_msg
+from rise_control.msg import ppm_msg
 from std_msgs.msg import String
 
 
@@ -70,7 +70,6 @@ if __name__ == "__main__":
     pi = pigpio.pi()    
     try:
         while not rospy.is_shutdown():
-            
             p1 = PWM_read(pi, 4)
         p1.cancel()
     except rospy.ROSInterruptException:
