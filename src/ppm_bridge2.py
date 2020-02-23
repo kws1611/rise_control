@@ -1,12 +1,81 @@
 #!/usr/bin/env python
 
 import time
-import pigpio 
-import rospy
+import math
+import pigpio # http://abyz.co.uk/rpi/pigpio/python.html
 import rospy
 import numpy as np
 from rise_control.msg import ppm_msg
 from std_msgs.msg import String
+
+
+class PWM_read:
+    def __init__(self, pi, gpio):
+        self.pi = pi
+        self.gpio = gpio
+
+        self._high_tick = None
+        self._p = None
+        self._hp = None
+        self.correcting_channel = 0
+
+        self.channel_number = [0,0,0,0,0,0,0,0]
+        self.count = 0
+        self.basic_ppm_signal_count = 0
+        self.ch = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.ch_final = [0,0,0,0,0,0,0,0,0]
+        
+        self.first_switch = True
+
+        self._cb = pi.callback(gpio, pigpio.EITHER_EDGE, self._cbf)
+        
+    def _cbf(self, gpio, level, tick):
+        #print("_cb")
+        input_channel = ppm_msg()
+        if level == 1:
+            if self._high_tick is not None:
+                self._p = pigpio.tickDiff(self._high_tick, tick)
+            self._high_tick = tick
+        elif level == 0:
+            if self._high_tick is not None:
+                    self._hp = pigpio.tickDiff(self._high_tick, tick)
+        if (self._p is not None) and (self._hp is not None):
+            #print("g={} f={:.1f} dc={:.1f}".
+            #	format(gpio, 1000000.0/self._p, 100.0 * self._hp/self._p))
+            self.ch[self.count] = self._hp
+            self.count += 1
+            #print(self.ch)
+            if self.count == 18:
+                #print(self.ch)
+                self.count = 0
+
+
+
+    def reading_process(self):
+        #print("reading_proce")
+        read_message = ppm_msg()
+        if self.first_switch:
+            if self.ch[self.count] > 7000:
+                self.basic_ppm_signal_count = self.count
+                self.first_switch = False
+
+            for i in range(0,7):
+                if self.basic_ppm_signal_count + 2 + 2*i > 7:
+                    self.channel_number[i] = self.basic_ppm_signal_count + 2 + 2*i - 17
+                else :
+                    self.channel_number[i] = self.basic_ppm_signal_count + 2 + 2*i
+                #print(self.ch)
+        
+        self.ch_final = [self.ch[self.channel_number[0]], self.ch[self.channel_number[1]], self.ch[self.channel_number[2]], self.ch[self.channel_number[3]], self.ch[self.channel_number[4]], self.ch[self.channel_number[5]], self.ch[self.channel_number[6]],self.ch[self.channel_number[7]]]
+        return self.ch_final
+
+    def cancel(self):
+        self._cb.cancel()
+
+    def to_global(self):
+        #print(self.ch_final)
+        return self.ch_final
+
 
 class X:
     GAP=300
@@ -25,14 +94,6 @@ class X:
         self._frame_us = int(frame_ms * 1000)
         self._frame_secs = frame_ms / 1000.0
 
-        self.ch1 = 1500
-        self.ch2 = 1000
-        self.ch3 = 1000
-        self.ch4 = 1000
-        self.ch5 = 1000
-        self.ch6 = 1500
-        self.ch7 = 1000
-        self.ch8 = 1000
 
         if channels < 1:
             channels = 1
@@ -49,19 +110,8 @@ class X:
         pi.write(gpio, pigpio.LOW)
 
         self._update_time = time.time()
-        rospy.Subscriber("/input_ppm",ppm_msg,self.ppm_cb)
+        
         self.ppm_output_pub = rospy.Publisher("/output_ppm",ppm_msg,queue_size=1)
-
-    def ppm_cb(self,msg):
-        self.ppm_input_msg = msg
-        self.ch1 = int(self.ppm_input_msg.channel_1)
-        self.ch2 = int(self.ppm_input_msg.channel_2)
-        self.ch3 = int(self.ppm_input_msg.channel_3)
-        self.ch4 = int(self.ppm_input_msg.channel_4)
-        self.ch5 = int(self.ppm_input_msg.channel_5)
-        self.ch6 = int(self.ppm_input_msg.channel_6)
-        self.ch7 = int(self.ppm_input_msg.channel_7)
-        self.ch8 = int(self.ppm_input_msg.channel_8)
 
     def _update(self):
         wf =[]
@@ -86,8 +136,8 @@ class X:
 
 
         remaining = self._update_time + self._frame_secs - time.time()
-        #if remaining > 0:
-        #    time.sleep(remaining)
+        if remaining > 0:
+            time.sleep(remaining)
         self._update_time = time.time()
 
         wid = self._wid[self._next_wid]
@@ -108,21 +158,18 @@ class X:
         for i in self._wid:
             if i is not None:
                 self.pi.wave_delete(i)
-    def channel_value(self):
-        channel_value = [self.ch1,self.ch2,self.ch3,self.ch4,self.ch5,self.ch6,self.ch7,self.ch8]        
-        return channel_value
 
-    def sending_process(self):
+    def sending_process(self, chan):
         self.sending_topic = ppm_msg()
-        chan_1 = self.ch1
-        chan_2 = self.ch2
-        chan_3 = self.ch3
-        chan_4 = self.ch4
-        chan_5 = self.ch5
-        chan_6 = self.ch6
-        chan_7 = self.ch7
-        chan_8 = self.ch8
-        
+        chan_1 = chan[0]
+        chan_2 = chan[1]
+        chan_3 = chan[2]
+        chan_4 = chan[3]
+        chan_5 = chan[4]
+        chan_6 = chan[5]
+        chan_7 = chan[6]
+        chan_8 = chan[7]
+        """
         self.update_channel(0, chan_1)
         self.update_channel(1, chan_2)
         self.update_channel(2, chan_3)
@@ -132,80 +179,29 @@ class X:
         self.update_channel(6, chan_7)
         self.update_channel(7, chan_8)
         """
-        self._widths[0] = self.ch1
-        self._widths[1] = self.ch2
-        self._widths[2] = self.ch3
-        self._widths[3] = self.ch4
-        self._widths[4] = self.ch5
-        self._widths[5] = self.ch6
-        self._widths[6] = self.ch7
-        self._widths[7] = self.ch8
-        """
+        print("processing")
+
         #self.update_channels([self.ch1,self.ch2,self.ch3,self.ch4,self.ch5,self.ch6,self.ch7,self.ch8])
         #self._update()
-        print(chan_1,chan_2)
-        """
-        for pw in range(500, 2000, 100):
-            self.update_channel(0, pw)
-            self.update_channel(1, pw)
-            self.update_channel(2, pw)
-            self.update_channel(3, pw)
-            self.update_channel(4, pw)
-            self.update_channel(5, pw)
-            self.update_channel(6, pw)
-            self.update_channel(7, pw)
         
-        
-        self.sending_topic.channel_1 = self.ch1
-        self.sending_topic.channel_2 = self.ch2
-        self.sending_topic.channel_3 = self.ch3
-        self.sending_topic.channel_4 = self.ch4
-        self.sending_topic.channel_5 = self.ch5
-        self.sending_topic.channel_6 = self.ch6
-        self.sending_topic.channel_7 = self.ch7
-        self.sending_topic.channel_8 = self.ch8
-        self.ppm_output_pub.publish(self.sending_topic)
-        """
 
 
 if __name__ == "__main__":
-    rospy.init_node("ppm_sending", anonymous=True)
-    rospy.loginfo("ppm_generating start")
-    pi = pigpio.pi()
+    rospy.init_node("ppm_reading", anonymous=True)
+    rospy.loginfo("ppm_reading start")
+    pi = pigpio.pi()    
 
     try:
-        if not pi.connected:
-            exit(0)
+        p1 = PWM_read(pi, 4)
+        time.sleep(1)
         pi.wave_tx_stop() # Start with a clean slate.
         ppm = X(pi, 17, frame_ms=20)
-
         
         while True:
             
-            ppm.update_channels(ppm.channel_value())
-            #print(ppm.channel_value())
-            #ppm._update()            
-            #start = time.time()
-        """
-        for chan in range(8):
-            for pw in range(500, 2000, 5):
-                ppm.update_channel(chan, pw)
-                ppm._update()
-            time.sleep(0.1)
-        """
+            ppm.update_channels(p1.reading_process())
         
-        
-        ppm.cancel()
-
-        pi.stop()
     except rospy.ROSInterruptException:
         print "ROS terminated"
         pass
-
-    #ppm.update_channels([1000, 2000, 1000, 2000, 1000, 2000, 1000, 2000])
-
-    #time.sleep(2)
-
-
-
-
+    pi.stop()

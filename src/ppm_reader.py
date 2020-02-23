@@ -18,15 +18,20 @@ class PWM_read:
         self._p = None
         self._hp = None
         self.correcting_channel = 0
-        self.correcting_switch = False
 
+        self.channel_number = [0,0,0,0,0,0,0,0]
         self.count = 0
+        self.basic_ppm_signal_count = 0
         self.ch = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.ch_final = [0,0,0,0,0,0,0,0,0]
+        
+        self.first_switch = True
+
         self._cb = pi.callback(gpio, pigpio.EITHER_EDGE, self._cbf)
         self.input_pub = rospy.Publisher("/input_ppm",ppm_msg,queue_size=1)
 
     def _cbf(self, gpio, level, tick):
+        #print("_cb")
         input_channel = ppm_msg()
         if level == 1:
             if self._high_tick is not None:
@@ -40,38 +45,56 @@ class PWM_read:
             #	format(gpio, 1000000.0/self._p, 100.0 * self._hp/self._p))
             self.ch[self.count] = self._hp
             self.count += 1
+            #print(self.ch)
             if self.count == 18:
                 #print(self.ch)
                 self.count = 0
-                self.ch_final = [self.ch[0],self.ch[2],self.ch[4],self.ch[6],self.ch[8],self.ch[10],self.ch[12],self.ch[14],self.ch[16]]
-                
-                self.ch = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-                if(self.ch_final[8] > 7000):
-                    del self.ch_final[8]
-                    print(self.ch_final)
-                    input_channel.channel = self.ch_final
-                    self.input_pub.publish(input_channel)
-                else :
-                    for i in range(0,8):
-                        if (self.ch_final[i] > 7000):
-                            self.correcting_channel = i
-                            self.correcting_switch = True
-                
-            if self.correcting_switch:
-                self.count -= (self.correcting_channel*2+2)
-                self.correcting_switch = False
 
+
+
+    def reading_process(self):
+        #print("reading_proce")
+        read_message = ppm_msg()
+        if self.first_switch:
+            if self.ch[self.count] > 7000:
+                self.basic_ppm_signal_count = self.count
+                self.first_switch = False
+
+            for i in range(0,7):
+                if self.basic_ppm_signal_count + 2 + 2*i > 7:
+                    self.channel_number[i] = self.basic_ppm_signal_count + 2 + 2*i - 17
+                else :
+                    self.channel_number[i] = self.basic_ppm_signal_count + 2 + 2*i
+                #print(self.ch)
+        
+        self.ch_final = [self.ch[self.channel_number[0]], self.ch[self.channel_number[1]], self.ch[self.channel_number[2]], self.ch[self.channel_number[3]], self.ch[self.channel_number[4]], self.ch[self.channel_number[5]], self.ch[self.channel_number[6]],self.ch[self.channel_number[7]]]
+        read_message.channel_1 = self.ch_final[0]
+        read_message.channel_2 = self.ch_final[1]
+        read_message.channel_3 = self.ch_final[2]
+        read_message.channel_4 = self.ch_final[3]
+        read_message.channel_5 = self.ch_final[4]
+        read_message.channel_6 = self.ch_final[5]
+        read_message.channel_7 = self.ch_final[6]
+        read_message.channel_8 = self.ch_final[7]
+        read_message.header.stamp = rospy.Time.now()
+        self.input_pub.publish(read_message)
+    
     def cancel(self):
         self._cb.cancel()
+
 
 if __name__ == "__main__":
     rospy.init_node("ppm_reading", anonymous=True)
     rospy.loginfo("ppm_reading start")
     pi = pigpio.pi()    
+
     try:
+        p1 = PWM_read(pi, 4)
+        time.sleep(1)
+        
         while not rospy.is_shutdown():
-            p1 = PWM_read(pi, 4)
-        p1.cancel()
+            p1.reading_process()
+        
     except rospy.ROSInterruptException:
         print "ROS terminated"
         pass
