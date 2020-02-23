@@ -47,6 +47,11 @@ class control:
         self.target_y = y
         self.target_z = z
 
+        self.kp = 0.0
+        self.ki = 0.0
+        self.kd = 0.0
+        self.dt = 0.0
+
         self.ch1 = 1500
         self.ch2 = 1000
         self.ch3 = 1000
@@ -67,11 +72,72 @@ class control:
         self.motion_roll = 0.0
         self.motion_pitch = 0.0
         self.motion_yaw = 0.0
+        self.error_x,self.error_y, self.error_z = 0.0, 0.0, 0.0
+        self.prev_error_x, self.prev_error_y, self.prev_error_z = 0.0, 0.0, 0.0
+        self.error_roll, self.error_pitch, self.error_yaw = 0.0, 0.0, 0.0
+        self.prev_roll, self.prev_pitch, self.prev_yaw = 0.0, 0.0 ,0.0
+        self.x_I, self.y_I, self.z_I = 0.0, 0.0, 0.0
+        self.roll_I, self.pitch_I, self.yaw_I = 0.0, 0.0 , 0.0
         # Subscriber created
         rospy.Subscriber("/vrpn_client_node/quad_imu_2/pose", PoseStamped, self.motion_cb)
         rospy.Subscriber("/input_ppm", ppm_msg, self.ppm_cb)
         self.controling_pub = rospy.Publisher("/control_signal", ppm_msg, queue_size=1)
 
     def pid(self):
+        self.motion_roll,self.motion_pitch ,self.motion_yaw = self.calculating_rpy(self.motion_quat_w,self.motion_quat_x,self.motion_quat_y,self.motion_quat_z)
+        self.error_roll = -self.motion_roll
+        self.error_pitch = -self.motion_pitch
+        self.error_yaw = self.target_yaw - self.motion_yaw
+        self.error_x = self.target_x - self.motion_x
+        self.error_y = self.target_y - self.motion_y
+        self.error_z = self.target_z - self.motion_z
+        sequence = [self.error_x, self.error_y, self.error_z, self.error_roll, self.error_pitch, self.error_yaw]
+        sequence_2 = [self.prev_erroc_x, self.prev_erroc_y, self.prev_error_z, self.prev_roll, self.prev_pitch, self.prev_yaw]
+        sequence_3 = [self.x_I, self.y_I, self.z_I, self.roll_I, self.pitch_I, self.yaw_I]
+
+        for i in rance(6):
+            sequence_3[i] = self.I_value_cal(sequence_3[i], sequence[i])
+            self.pid_cal(sequence[i],sequence_2[i],sequencd_3[i])
+
+        self.x_I, self.y_I, self.z_I, self.roll_I, self.pitch_I, self.yaw_I = sequence_3[0],sequence_3[1],sequence_3[2],sequence_3[3],sequence_3[4],sequence_3[5]
+        self.prev_erroc_x, self.prev_error_y, self.prev_error_z = self.error_x,self.error_y, self.error_z
+        self.prev_roll, self.prev_pitch, self.prev_yaw = self.error_roll, self.error_pitch, self.error_yaw
+
+    def I_value_cal(self, I,X):
+        I += self.ki * self.dt*X
+        return I
+
+    def pid_cal(self, X, prev_X, I):
+        value = X*self.kp + I + self.kd*(X - prev_X)/self.dt
+        return value
+
+    def controling_process(self):
+        self.pid()
+        self.channel_msg = ppm_msg()
+        self.channel_msg.header.stamp = time.time()
+        self.channel_msg.channnel_1 = self.ch1
+        self.channel_msg.channnel_2 = self.ch2
+        self.channel_msg.channnel_3 = self.ch3
+        self.channel_msg.channnel_4 = self.ch4
+        self.channel_msg.channnel_5 = self.ch5
+        self.channel_msg.channnel_6 = self.ch6
+        self.channel_msg.channnel_7 = self.ch7
+        self.channel_msg.channnel_8 = self.ch8
+
+        self.controling_pub.publish(self.channel_msg)
+
+
+if __name__ == "__main__":
+	rospy.init_node("controlling_node", anonymous=True)
+	rospy.loginfo("control node initialized")
+	try:
+		rospy.loginfo("controling start!")
+        drone_control = control(1,1,1)
+        while not rospy.is_shutdown():
+            drone_control.controling_process()
+
+	except rospy.ROSInterruptException:
+		print "ROS terminated"
+		pass
 
 
