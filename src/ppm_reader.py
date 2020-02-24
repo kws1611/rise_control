@@ -24,7 +24,7 @@ class PWM_read:
         self.basic_ppm_signal_count = 0
         self.ch = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.ch_final = [0,0,0,0,0,0,0,0,0]
-        self.rate = rospy.Rate(50)
+        self.rate = rospy.Rate(100)
         self.first_switch = True
 
         self._cb = pi.callback(gpio, pigpio.EITHER_EDGE, self._cbf)
