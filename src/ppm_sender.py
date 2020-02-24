@@ -81,7 +81,7 @@ class X:
 
         wid = self.pi.wave_create()
         #print(wid)
-        self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_REPEAT_SYNC)
+        self.pi.wave_send_using_mode(wid, pigpio.WAVE_ONE_SHOT_SYNC)
         self._wid[self._next_wid] = wid
 
         self._next_wid += 1
