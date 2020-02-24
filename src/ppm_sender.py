@@ -97,7 +97,7 @@ class X:
 
     def update_channel(self, channel, width):
         self._widths[channel] = width
-        self._update()
+        #self._update()
 
     def update_channels(self, widths):
         self._widths[0:len(widths)] = widths[0:self.channels]
@@ -142,7 +142,7 @@ class X:
         self._widths[7] = self.ch8
         """
         #self.update_channels([self.ch1,self.ch2,self.ch3,self.ch4,self.ch5,self.ch6,self.ch7,self.ch8])
-        #self._update()
+        self._update()
         print(chan_1,chan_2)
         """
         for pw in range(500, 2000, 100):
@@ -155,7 +155,7 @@ class X:
             self.update_channel(6, pw)
             self.update_channel(7, pw)
         
-        
+        """
         self.sending_topic.channel_1 = self.ch1
         self.sending_topic.channel_2 = self.ch2
         self.sending_topic.channel_3 = self.ch3
@@ -165,7 +165,7 @@ class X:
         self.sending_topic.channel_7 = self.ch7
         self.sending_topic.channel_8 = self.ch8
         self.ppm_output_pub.publish(self.sending_topic)
-        """
+        
 
 
 if __name__ == "__main__":
@@ -181,18 +181,21 @@ if __name__ == "__main__":
 
         
         while True:
-            
-            ppm.update_channels(ppm.channel_value())
+            #ppm.update_channels([1000, 2000, 1000, 2000, 1000, 2000, 1000, 2000])    
+            #ppm.update_channels(ppm.channel_value())
             #print(ppm.channel_value())
-            #ppm._update()            
+            #ppm._update()  
+            #ppm.sending_process()          
             #start = time.time()
-        """
-        for chan in range(8):
-            for pw in range(500, 2000, 5):
-                ppm.update_channel(chan, pw)
-                ppm._update()
-            time.sleep(0.1)
-        """
+        
+            for chan in range(8):
+                for pw in range(500, 2000, 5):
+                    ppm.update_channel(chan, pw)
+                    time.sleep(0.1)                    
+                    #ppm._update()
+        
+        
+        
         
         
         ppm.cancel()

@@ -78,6 +78,7 @@ class PWM_read:
         read_message.channel_8 = self.ch_final[7]
         read_message.header.stamp = rospy.Time.now()
         self.input_pub.publish(read_message)
+        print(self.ch)
     
     def cancel(self):
         self._cb.cancel()
