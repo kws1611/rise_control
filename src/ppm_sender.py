@@ -14,6 +14,7 @@ class X:
     def __init__(self, pi, gpio, channels=8, frame_ms=27):
         self.pi = pi
         self.gpio = gpio
+        self.rate = rospy.Rate(50)
 
         if frame_ms < 5:
             frame_ms = 5
@@ -122,7 +123,7 @@ class X:
         chan_6 = self.ch6
         chan_7 = self.ch7
         chan_8 = self.ch8
-        
+        """
         self.update_channel(0, chan_1)
         self.update_channel(1, chan_2)
         self.update_channel(2, chan_3)
@@ -131,7 +132,7 @@ class X:
         self.update_channel(5, chan_6)
         self.update_channel(6, chan_7)
         self.update_channel(7, chan_8)
-        """
+        
         self._widths[0] = self.ch1
         self._widths[1] = self.ch2
         self._widths[2] = self.ch3
@@ -141,8 +142,7 @@ class X:
         self._widths[6] = self.ch7
         self._widths[7] = self.ch8
         """
-        #self.update_channels([self.ch1,self.ch2,self.ch3,self.ch4,self.ch5,self.ch6,self.ch7,self.ch8])
-        self._update()
+        self.update_channels([self.ch1,self.ch2,self.ch3,self.ch4,self.ch5,self.ch6,self.ch7,self.ch8])
         print(chan_1,chan_2)
         """
         for pw in range(500, 2000, 100):
@@ -165,7 +165,7 @@ class X:
         self.sending_topic.channel_7 = self.ch7
         self.sending_topic.channel_8 = self.ch8
         self.ppm_output_pub.publish(self.sending_topic)
-        
+        self.rate.sleep()
 
 
 if __name__ == "__main__":

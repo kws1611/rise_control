@@ -24,7 +24,7 @@ class PWM_read:
         self.basic_ppm_signal_count = 0
         self.ch = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.ch_final = [0,0,0,0,0,0,0,0,0]
-        
+        self.rate = rospy.Rate(50)
         self.first_switch = True
 
         self._cb = pi.callback(gpio, pigpio.EITHER_EDGE, self._cbf)
@@ -78,7 +78,7 @@ class PWM_read:
         read_message.channel_8 = self.ch_final[7]
         read_message.header.stamp = rospy.Time.now()
         self.input_pub.publish(read_message)
-        print(self.ch)
+        self.rate.sleep()
     
     def cancel(self):
         self._cb.cancel()
