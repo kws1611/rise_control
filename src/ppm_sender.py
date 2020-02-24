@@ -147,7 +147,7 @@ class X:
         """
         
         #self.update_channels([chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7,chan_8])
-        self._width = [chan_8,chan_1,chan_2,2000,chan_4,chan_5,chan_6,chan_7]
+        self._width = [chan_8,chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7]
         self._update()
         #self.update_channels([1000,2000,1000,2000,1000,1000,1000,1000])
         #self._update()
