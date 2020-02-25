@@ -10,11 +10,11 @@ from std_msgs.msg import String
 
 class X:
     
-    WAVES=1
-    def __init__(self, pi, gpio, channels=8, frame_ms=20):
+    WAVES=5
+    def __init__(self, pi, gpio, channels=8, frame_ms=33):
         self.pi = pi
         self.gpio = gpio
-        self.rate = rospy.Rate(150)
+        self.rate = rospy.Rate(100)
         self.GAP=300
 
         if frame_ms < 5:
@@ -83,7 +83,7 @@ class X:
 
         wid = self.pi.wave_create()
         #print(wid)
-        self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT)
+        self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT_SYNC)
         self._wid[self._next_wid] = wid
 
         self._next_wid += 1
@@ -92,8 +92,8 @@ class X:
 
 
         remaining = self._update_time + self._frame_secs - time.time()
-        #if remaining > 0:
-        #    time.sleep(remaining)
+        if remaining > 0:
+            time.sleep(remaining)
         self._update_time = time.time()
 
         wid = self._wid[self._next_wid]
@@ -156,10 +156,14 @@ class X:
         #self._width = [chan_8,chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7]
         #self._update()
         #self.update_channels([chan_8,chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7])
-        self._widths[0] = self.ch1
-        self._widths[1] = self.ch2
-        self._widths[2] = self.ch3
-        self._widths[3] = self.ch4
+        self._widths[0] = self.ch1 + 500
+        self._widths[1] = self.ch2 + 500
+        self._widths[2] = self.ch3 + 500
+        self._widths[3] = self.ch4 + 500
+        self._widths[4] = 1500
+        self._widths[5] = 1500
+        self._widths[6] = 1500
+        self._widths[7] = 1500
         
         self._update()
         """
@@ -174,7 +178,7 @@ class X:
             self.update_channel(7, pw)
         
         """
-        print(chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7,chan_8)
+        print(chan_1 + 500,chan_2 + 500,chan_3 + 500,chan_4 + 500,chan_5,chan_6 + 500,chan_7 + 500,chan_8 + 500)
         """
         self.sending_topic.channel_1 = self.ch1
         self.sending_topic.channel_2 = self.ch2
@@ -197,7 +201,7 @@ if __name__ == "__main__":
         if not pi.connected:
             exit(0)
         pi.wave_tx_stop() # Start with a clean slate.
-        ppm = X(pi, 17, frame_ms=20)
+        ppm = X(pi, 17, frame_ms=33)
         time.sleep(2)
 
         
