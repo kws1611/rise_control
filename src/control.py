@@ -50,7 +50,7 @@ class control:
         self.kp = 0.0
         self.ki = 0.0
         self.kd = 0.0
-        self.dt = 0.0
+        self.dt = 1/50
 
         self.ch1 = 1000
         self.ch2 = 1000
@@ -78,6 +78,7 @@ class control:
         self.prev_roll, self.prev_pitch, self.prev_yaw = 0.0, 0.0 ,0.0
         self.x_I, self.y_I, self.z_I = 0.0, 0.0, 0.0
         self.roll_I, self.pitch_I, self.yaw_I = 0.0, 0.0 , 0.0
+        self.roll, self.pitch, self.yaw, self.throttle = 0.0, 0.0, 0.0, 0.0
         # Subscriber created
         rospy.Subscriber("/vrpn_client_node/quad_imu_2/pose", PoseStamped, self.motion_cb)
         rospy.Subscriber("/input_ppm", ppm_msg, self.ppm_cb)
@@ -102,11 +103,10 @@ class control:
         self.x_I, self.y_I, self.z_I, self.roll_I, self.pitch_I, self.yaw_I = sequence_3[0],sequence_3[1],sequence_3[2],sequence_3[3],sequence_3[4],sequence_3[5]
         self.prev_erroc_x, self.prev_error_y, self.prev_error_z = self.error_x,self.error_y, self.error_z
         self.prev_roll, self.prev_pitch, self.prev_yaw = self.error_roll, self.error_pitch, self.error_yaw
-        self.yaw = self.error_yaw + 1500
-        self.pith = self.error_pitch + 1500
-        self.roll = self.error_roll + 1500
-        self.throttle = self.error_z + 600
-
+        self.yaw = self.error_yaw*1000 + 1500
+        self.pith = self.error_pitch*1000 + 1500
+        self.roll = self.error_roll*1000 + 1500
+        self.throttle = self.error_z*1000 + 600
 
     def I_value_cal(self, I,X):
         I += self.ki * self.dt*X
@@ -120,14 +120,34 @@ class control:
         self.pid()
         self.channel_msg = ppm_msg()
         self.channel_msg.header.stamp = time.time()
-        self.channel_msg.channnel_1 = self.ch1
-        self.channel_msg.channnel_2 = self.ch2
-        self.channel_msg.channnel_3 = self.ch3
-        self.channel_msg.channnel_4 = self.ch4
-        self.channel_msg.channnel_5 = self.ch5
-        self.channel_msg.channnel_6 = self.ch6
-        self.channel_msg.channnel_7 = self.ch7
-        self.channel_msg.channnel_8 = self.ch8
+        if self.ch5 > 1350:
+            self.channel_msg.channnel_1 = self.ch1
+            self.channel_msg.channnel_2 = self.ch2
+            self.channel_msg.channnel_3 = self.ch3
+            self.channel_msg.channnel_4 = self.ch4
+            self.channel_msg.channnel_5 = self.ch5
+            self.channel_msg.channnel_6 = self.ch6
+            self.channel_msg.channnel_7 = self.ch7
+            self.channel_msg.channnel_8 = self.ch8
+        elif self.ch5 < 700 :
+            self.channel_msg.channnel_1 = self.ch1
+            self.channel_msg.channnel_2 = self.ch2
+            self.channel_msg.channnel_3 = self.ch3
+            self.channel_msg.channnel_4 = self.ch4
+            self.channel_msg.channnel_5 = self.ch5
+            self.channel_msg.channnel_6 = self.ch6
+            self.channel_msg.channnel_7 = self.ch7
+            self.channel_msg.channnel_8 = self.ch8
+
+        else :
+            self.channel_mag.channel_1 = self.pitch
+            self.channel_mag.channel_2 = self.roll
+            self.channel_mag.channel_3 = self.throttle
+            self.channel_mag.channel_4 = self.yaw
+            self.channel_msg.channnel_5 = self.ch5
+            self.channel_msg.channnel_6 = self.ch6
+            self.channel_msg.channnel_7 = self.ch7
+            self.channel_msg.channnel_8 = self.ch8
 
         self.controling_pub.publish(self.channel_msg)
 

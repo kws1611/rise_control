@@ -166,7 +166,7 @@ class X:
         for pw in range(500, 2000, 100):
             self.update_channel(0, pw)
             self.update_channel(1, pw)
-            self.update_channel(2, pw)
+            self.update_channel(2, pw)2
             self.update_channel(3, pw)
             self.update_channel(4, pw)
             self.update_channel(5, pw)
@@ -187,8 +187,6 @@ class X:
         self.ppm_output_pub.publish(self.sending_topic)
         """
         self.rate.sleep()
-        
-
 
 if __name__ == "__main__":
     rospy.init_node("ppm_sending", anonymous=True)
