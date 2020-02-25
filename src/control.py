@@ -102,6 +102,11 @@ class control:
         self.x_I, self.y_I, self.z_I, self.roll_I, self.pitch_I, self.yaw_I = sequence_3[0],sequence_3[1],sequence_3[2],sequence_3[3],sequence_3[4],sequence_3[5]
         self.prev_erroc_x, self.prev_error_y, self.prev_error_z = self.error_x,self.error_y, self.error_z
         self.prev_roll, self.prev_pitch, self.prev_yaw = self.error_roll, self.error_pitch, self.error_yaw
+        self.yaw = self.error_yaw + 1500
+        self.pith = self.error_pitch + 1500
+        self.roll = self.error_roll + 1500
+        self.throttle = self.error_z + 600
+
 
     def I_value_cal(self, I,X):
         I += self.ki * self.dt*X

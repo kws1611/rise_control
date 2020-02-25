@@ -15,7 +15,7 @@ class X:
         self.pi = pi
         self.gpio = gpio
         self.rate = rospy.Rate(150)
-        self.GAP=70
+        self.GAP=300
 
         if frame_ms < 5:
             frame_ms = 5
@@ -175,6 +175,7 @@ class X:
         
         """
         print(chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7,chan_8)
+        """
         self.sending_topic.channel_1 = self.ch1
         self.sending_topic.channel_2 = self.ch2
         self.sending_topic.channel_3 = self.ch3
@@ -184,6 +185,7 @@ class X:
         self.sending_topic.channel_7 = self.ch7
         self.sending_topic.channel_8 = self.ch8
         self.ppm_output_pub.publish(self.sending_topic)
+        """
         self.rate.sleep()
         
 
