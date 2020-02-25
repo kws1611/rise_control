@@ -80,7 +80,7 @@ class PWM_read:
 class X:
     GAP=300
     WAVES=3
-    def __init__(self, pi, gpio, channels=8, frame_ms=27):
+    def __init__(self, pi, gpio, channels=8, frame_ms=33):
         self.pi = pi
         self.gpio = gpio
 
@@ -127,7 +127,7 @@ class X:
 
         self.pi.wave_add_generic(wf)
         wid = self.pi.wave_create()
-        self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_REPEAT_SYNC)
+        self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT)
         self._wid[self._next_wid] = wid
 
         self._next_wid += 1
@@ -181,7 +181,7 @@ class X:
         """
         print("processing")
 
-        #self.update_channels([self.ch1,self.ch2,self.ch3,self.ch4,self.ch5,self.ch6,self.ch7,self.ch8])
+        self.update_channels([chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7,chan_8])
         #self._update()
         
 
@@ -195,7 +195,7 @@ if __name__ == "__main__":
         p1 = PWM_read(pi, 4)
         time.sleep(1)
         pi.wave_tx_stop() # Start with a clean slate.
-        ppm = X(pi, 17, frame_ms=20)
+        ppm = X(pi, 17, frame_ms=33)
         
         while True:
             

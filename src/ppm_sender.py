@@ -9,12 +9,13 @@ from rise_control.msg import ppm_msg
 from std_msgs.msg import String
 
 class X:
-    GAP=300
-    WAVES=3
-    def __init__(self, pi, gpio, channels=8, frame_ms=22.5):
+    
+    WAVES=1
+    def __init__(self, pi, gpio, channels=8, frame_ms=20):
         self.pi = pi
         self.gpio = gpio
-        self.rate = rospy.Rate(50)
+        self.rate = rospy.Rate(150)
+        self.GAP=300
 
         if frame_ms < 5:
             frame_ms = 5
@@ -25,6 +26,7 @@ class X:
         self.frame_ms = frame_ms
         self._frame_us = int(frame_ms * 1000)
         self._frame_secs = frame_ms / 1000.0
+        self.check_count = 0
 
         self.ch1 = 1500
         self.ch2 = 1000
@@ -81,7 +83,7 @@ class X:
 
         wid = self.pi.wave_create()
         #print(wid)
-        self.pi.wave_send_using_mode(wid, pigpio.WAVE_ONE_SHOT_SYNC)
+        self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT)
         self._wid[self._next_wid] = wid
 
         self._next_wid += 1
@@ -90,8 +92,8 @@ class X:
 
 
         remaining = self._update_time + self._frame_secs - time.time()
-        if remaining > 0:
-            time.sleep(remaining)
+        #if remaining > 0:
+        #    time.sleep(remaining)
         self._update_time = time.time()
 
         wid = self._wid[self._next_wid]
@@ -117,6 +119,7 @@ class X:
         return channel_value
 
     def sending_process(self):
+        rospy.Subscriber("/input_ppm",ppm_msg,self.ppm_cb)
         self.sending_topic = ppm_msg()
         chan_1 = self.ch1
         chan_2 = self.ch2
@@ -126,6 +129,7 @@ class X:
         chan_6 = self.ch6
         chan_7 = self.ch7
         chan_8 = self.ch8
+        self.check_count += 1
         """
         self.update_channel(0, chan_1)
         self.update_channel(1, chan_2)
@@ -145,12 +149,19 @@ class X:
         self._widths[6] = self.ch7
         self._widths[7] = self.ch8
         """
-        
+        pw = self.check_count*5 + 700
+        if pw > 1800:
+            self.check_count = 0
         #self.update_channels([chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7,chan_8])
-        self._width = [chan_8,chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7]
-        self._update()
-        #self.update_channels([1000,2000,1000,2000,1000,1000,1000,1000])
+        #self._width = [chan_8,chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7]
         #self._update()
+        #self.update_channels([chan_8,chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7])
+        self._widths[0] = self.ch1
+        self._widths[1] = self.ch2
+        self._widths[2] = self.ch3
+        self._widths[3] = self.ch4
+        
+        self._update()
         """
         for pw in range(500, 2000, 100):
             self.update_channel(0, pw)
@@ -186,7 +197,7 @@ if __name__ == "__main__":
         if not pi.connected:
             exit(0)
         pi.wave_tx_stop() # Start with a clean slate.
-        ppm = X(pi, 17, frame_ms=22.5)
+        ppm = X(pi, 17, frame_ms=20)
         time.sleep(2)
 
         

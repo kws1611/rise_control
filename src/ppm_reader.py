@@ -24,7 +24,7 @@ class PWM_read:
         self.basic_ppm_signal_count = 0
         self.ch = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.ch_final = [0,0,0,0,0,0,0,0,0]
-        self.rate = rospy.Rate(100)
+        self.rate = rospy.Rate(150)
         self.first_switch = True
 
         self._cb = pi.callback(gpio, pigpio.EITHER_EDGE, self._cbf)
@@ -66,6 +66,7 @@ class PWM_read:
                 else :
                     self.channel_number[i] = self.basic_ppm_signal_count + 2 + 2*i
                 #print(self.ch)
+        print(sum(self.ch))
         
         self.ch_final = [self.ch[self.channel_number[0]], self.ch[self.channel_number[1]], self.ch[self.channel_number[2]], self.ch[self.channel_number[3]], self.ch[self.channel_number[4]], self.ch[self.channel_number[5]], self.ch[self.channel_number[6]],self.ch[self.channel_number[7]]]
         read_message.channel_1 = self.ch_final[0]
