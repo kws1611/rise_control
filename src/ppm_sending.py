@@ -70,7 +70,7 @@ class X:
         wf.append(pigpio.pulse(0, 1 << self.gpio, self._frame_us - micros))
         self.pi.wave_add_generic(wf)
         wid = self.pi.wave_create()
-        self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT)
+        self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT_SYNC)
         self._wid[self._next_wid] = wid
 
         self._next_wid += 1
@@ -92,10 +92,14 @@ class X:
         for i in self._wid:
             if i is not None:
                 self.pi.wave_delete(i)
+    def update_channels(self, widths):
+        self._widths[0:len(widths)] = widths[0:self.channels]
+        self._update()
 
     def sending_process(self):
         rospy.Subscriber("/input_ppm", ppm_msg, self.ppm_cb)
         self.sending_topic = ppm_msg()
+        
         if self.ch5 > 1700 :
             chan_5 = 2000
         elif self.ch5 < 700:
@@ -103,13 +107,8 @@ class X:
         else :
             chan_5 = 1500
 
+        self.update_channels([self.ch1,self.ch2,self.ch3,self.ch4,self.ch5,1000,1000,1000])
 
-        self._widths[0] = self.ch1
-        self._widths[1] = self.ch2
-        self._widths[2] = self.ch3
-        self._widths[3] = self.ch4
-        self._widths[4] = chan_5
-        self._update()
         self.rate.sleep()
 
 if __name__ == "__main__":
