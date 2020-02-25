@@ -49,8 +49,6 @@ class PWM_read:
                 #print(self.ch)
                 self.count = 0
 
-
-
     def reading_process(self):
         #print("reading_proce")
         read_message = ppm_msg()
@@ -60,8 +58,8 @@ class PWM_read:
                 self.first_switch = False
 
             for i in range(0,7):
-                if self.basic_ppm_signal_count + 2 + 2*i > 7:
-                    self.channel_number[i] = self.basic_ppm_signal_count + 2 + 2*i - 17
+                if self.basic_ppm_signal_count + 2 + 2*i > 17:
+                    self.channel_number[i] = self.basic_ppm_signal_count + 2 + 2*i - 18
                 else :
                     self.channel_number[i] = self.basic_ppm_signal_count + 2 + 2*i
                 #print(self.ch)

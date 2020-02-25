@@ -52,12 +52,12 @@ class control:
         self.kd = 0.0
         self.dt = 0.0
 
-        self.ch1 = 1500
+        self.ch1 = 1000
         self.ch2 = 1000
         self.ch3 = 1000
         self.ch4 = 1000
         self.ch5 = 1000
-        self.ch6 = 1500
+        self.ch6 = 1000
         self.ch7 = 1000
         self.ch8 = 1000
         self.motion_x = 0.0
@@ -125,7 +125,6 @@ class control:
         self.channel_msg.channnel_8 = self.ch8
 
         self.controling_pub.publish(self.channel_msg)
-
 
 if __name__ == "__main__":
 	rospy.init_node("controlling_node", anonymous=True)
