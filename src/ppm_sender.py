@@ -77,7 +77,7 @@ class X:
         # off for the remaining frame period
         wf.append(pigpio.pulse(1<<self.gpio, 0, self.GAP))
         micros += self.GAP
-        wf.append(pigpio.pulse(0, 1<<self.gpio, self._frame_us-micros))
+        wf.append(pigpio.pulse(0, 1<<self.gpio, self._frame_us - micros))
 
         self.pi.wave_add_generic(wf)
 

@@ -10,11 +10,11 @@ from std_msgs.msg import String
 
 class X:
     WAVES = 1
-    def __init__(self, pi, gpio, channels=8, frame_ms=20):
+    def __init__(self, pi, gpio, channels=8, frame_ms=33):
         self.pi = pi
         self.gpio = gpio
         self.rate = rospy.Rate(150)
-        self.GAP = 300
+        self.GAP = 150
 
         if frame_ms < 5:
             frame_ms = 5
@@ -73,19 +73,12 @@ class X:
         self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT_SYNC)
         self._wid[self._next_wid] = wid
 
-        self._next_wid += 1
-        if self._next_wid >= self.WAVES:
-            self._next_wid = 0
-
         remaining = self._update_time + self._frame_secs - time.time()
         if remaining > 0:
             time.sleep(remaining)
         self._update_time = time.time()
 
-        wid = self._wid[self._next_wid]
-        if wid is not None:
-            self.pi.wave_delete(wid)
-            self._wid[self._next_wid] = None
+        self.pi.wave_delete(wid)
 
     def cancel(self):
         self.pi.wave_tx_stop()
@@ -120,7 +113,7 @@ if __name__ == "__main__":
         if not pi.connected:
             exit(0)
         pi.wave_tx_stop()
-        ppm = X(pi, 17, frame_ms=20)
+        ppm = X(pi, 17, frame_ms=33)
         time.sleep(2)
 
         while not rospy.is_shutdown():
