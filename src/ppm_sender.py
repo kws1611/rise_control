@@ -15,7 +15,7 @@ class X:
         self.pi = pi
         self.gpio = gpio
         self.rate = rospy.Rate(150)
-        self.GAP=300
+        self.GAP=70
 
         if frame_ms < 5:
             frame_ms = 5
