@@ -90,16 +90,15 @@ class X:
         if self._next_wid >= self.WAVES:
             self._next_wid = 0
 
-
         remaining = self._update_time + self._frame_secs - time.time()
         if remaining > 0:
             time.sleep(remaining)
         self._update_time = time.time()
 
         wid = self._wid[self._next_wid]
-        #if wid is not None:
-        #self.pi.wave_delete(wid)
-            #self._wid[self._next_wid] = None
+        if wid is not None:
+        self.pi.wave_delete(wid)
+            self._wid[self._next_wid] = None
 
     def update_channel(self, channel, width):
         self._widths[channel] = width

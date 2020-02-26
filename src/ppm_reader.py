@@ -8,17 +8,14 @@ import numpy as np
 from rise_control.msg import ppm_msg
 from std_msgs.msg import String
 
-
 class PWM_read:
     def __init__(self, pi, gpio):
         self.pi = pi
         self.gpio = gpio
-
         self._high_tick = None
         self._p = None
         self._hp = None
         self.correcting_channel = 0
-
         self.channel_number = [0,0,0,0,0,0,0,0]
         self.count = 0
         self.basic_ppm_signal_count = 0
@@ -31,7 +28,6 @@ class PWM_read:
         self.input_pub = rospy.Publisher("/input_ppm",ppm_msg,queue_size=1)
 
     def _cbf(self, gpio, level, tick):
-        #print("_cb")
         input_channel = ppm_msg()
         if level == 1:
             if self._high_tick is not None:
@@ -41,17 +37,10 @@ class PWM_read:
             if self._high_tick is not None:
                     self._hp = pigpio.tickDiff(self._high_tick, tick)
         if (self._p is not None) and (self._hp is not None):
-            #print("g={} f={:.1f} dc={:.1f}".
-            #	format(gpio, 1000000.0/self._p, 100.0 * self._hp/self._p))
             self.ch[self.count] = self._hp
             self.count += 1
-            #print(self.ch)
             if self.count == 18:
-                #print(self.ch)
                 self.count = 0
-
-
-
     def reading_process(self):
         #print("reading_proce")
         read_message = ppm_msg()
@@ -65,8 +54,6 @@ class PWM_read:
                     self.channel_number[i] = self.basic_ppm_signal_count + 2 + 2*i - 18
                 else :
                     self.channel_number[i] = self.basic_ppm_signal_count + 2 + 2*i
-                #print(self.ch)
-        print(sum(self.ch))
         
         self.ch_final = [self.ch[self.channel_number[0]], self.ch[self.channel_number[1]], self.ch[self.channel_number[2]], self.ch[self.channel_number[3]], self.ch[self.channel_number[4]], self.ch[self.channel_number[5]], self.ch[self.channel_number[6]],self.ch[self.channel_number[7]]]
         read_message.channel_1 = self.ch_final[0]
@@ -83,7 +70,6 @@ class PWM_read:
     
     def cancel(self):
         self._cb.cancel()
-
 
 if __name__ == "__main__":
     rospy.init_node("ppm_reading", anonymous=True)
