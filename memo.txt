@@ -1,0 +1,4 @@
+throttle = ch3 500~2000
+yaw = ch4 -(1000~2000) => +(direction)
+pitch = ch1 +(1000~2000) => + (to right)
+roll = ch2 +(1000~2000) => - (to front)
