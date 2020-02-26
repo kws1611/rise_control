@@ -87,6 +87,11 @@ class X:
         self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT)
         self._wid[self._next_wid] = wid
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        
+
+>>>>>>> parent of 184960a... 2026-3
 =======
         
 
@@ -103,9 +108,12 @@ class X:
         wid = self._wid[self._next_wid]
         if wid is not None:
 <<<<<<< HEAD
+<<<<<<< HEAD
             self.pi.wave_delete(wid)
             self._wid[self._next_wid] = None
 =======
+=======
+>>>>>>> parent of 184960a... 2026-3
 	    self.pi.wave_delete(wid)
 	    self._wid[self._next_wid] = None
 
@@ -116,6 +124,9 @@ class X:
     def update_channels(self, widths):
         self._widths[0:len(widths)] = widths[0:self.channels]
         self._update()
+<<<<<<< HEAD
+>>>>>>> parent of 184960a... 2026-3
+=======
 >>>>>>> parent of 184960a... 2026-3
 
     def cancel(self):
