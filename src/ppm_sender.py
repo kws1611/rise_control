@@ -78,11 +78,9 @@ def _update(self):
     wf.append(pigpio.pulse(1 << self.gpio, 0, self.GAP))
     micros += self.GAP
     wf.append(pigpio.pulse(0, 1 << self.gpio, self._frame_us - micros))
-
     self.pi.wave_add_generic(wf)
-
     wid = self.pi.wave_create()
-    # print(wid)
+
     self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT_SYNC)
     self._wid[self._next_wid] = wid
 
@@ -99,7 +97,6 @@ def _update(self):
     if wid is not None:
         self.pi.wave_delete(wid)
     self._wid[self._next_wid] = None
-
 
 def cancel(self):
     self.pi.wave_tx_stop()
@@ -119,32 +116,6 @@ def sending_process(self):
     chan_7 = self.ch7
     chan_8 = self.ch8
     self.check_count += 1
-    """
-    self.update_channel(0, chan_1)
-    self.update_channel(1, chan_2)
-    self.update_channel(2, chan_3)
-    self.update_channel(3, chan_4)
-    self.update_channel(4, chan_5)
-    self.update_channel(5, chan_6)
-    self.update_channel(6, chan_7)
-    self.update_channel(7, chan_8)
-
-    self._widths[0] = self.ch1
-    self._widths[1] = self.ch2
-    self._widths[2] = self.ch3
-    self._widths[3] = self.ch4
-    self._widths[4] = self.ch5
-    self._widths[5] = self.ch6
-    self._widths[6] = self.ch7
-    self._widths[7] = self.ch8
-    """
-    pw = self.check_count * 5 + 700
-    if pw > 1800:
-        self.check_count = 0
-    # self.update_channels([chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7,chan_8])
-    # self._width = [chan_8,chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7]
-    # self._update()
-    # self.update_channels([chan_8,chan_1,chan_2,chan_3,chan_4,chan_5,chan_6,chan_7])
     self._widths[0] = self.ch1 + 500
     self._widths[1] = self.ch2 + 500
     self._widths[2] = self.ch3 + 500
@@ -153,35 +124,10 @@ def sending_process(self):
     self._widths[5] = 1500
     self._widths[6] = 1500
     self._widths[7] = 1500
-
     self._update()
-    """
-    for pw in range(500, 2000, 100):
-        self.update_channel(0, pw)
-        self.update_channel(1, pw)
-        self.update_channel(2, pw)2
-        self.update_channel(3, pw)
-        self.update_channel(4, pw)
-        self.update_channel(5, pw)
-        self.update_channel(6, pw)
-        self.update_channel(7, pw)
 
-    """
     print(chan_1 + 500, chan_2 + 500, chan_3 + 500, chan_4 + 500, chan_5, chan_6 + 500, chan_7 + 500, chan_8 + 500)
-    """
-    self.sending_topic.channel_1 = self.ch1
-    self.sending_topic.channel_2 = self.ch2
-    self.sending_topic.channel_3 = self.ch3
-    self.sending_topic.channel_4 = self.ch4
-    self.sending_topic.channel_5 = self.ch5
-    self.sending_topic.channel_6 = self.ch6
-    self.sending_topic.channel_7 = self.ch7
-    self.sending_topic.channel_8 = self.ch8
-    self.ppm_output_pub.publish(self.sending_topic)
-    """
     self.rate.sleep()
-
-
 if __name__ == "__main__":
     rospy.init_node("ppm_sending", anonymous=True)
     rospy.loginfo("ppm_generating start")
@@ -195,22 +141,9 @@ if __name__ == "__main__":
         time.sleep(2)
 
         while not rospy.is_shutdown():
-            # ppm.update_channels([1000, 2000, 1000, 2000, 1000, 2000, 1000, 2000])
-            # ppm.update_channels(ppm.channel_value())
-            # print(ppm.channel_value())
-            # ppm._update()
+
             ppm.sending_process()
-            # start = time.time()
-            """
-            for chan in range(8):
-                for pw in range(500, 2000, 5):
-                    ppm.update_channel(chan, pw)
-                    time.sleep(0.1)                    
-                    #ppm._update()
-            """
-
         ppm.cancel()
-
         pi.stop()
     except rospy.ROSInterruptException:
         print
