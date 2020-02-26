@@ -10,11 +10,11 @@ from std_msgs.msg import String
 
 class X:
     
-    WAVES=5
+    WAVES=8
     def __init__(self, pi, gpio, channels=8, frame_ms=33):
         self.pi = pi
         self.gpio = gpio
-        self.rate = rospy.Rate(100)
+        self.rate = rospy.Rate(1000)
         self.GAP=300
 
         if frame_ms < 5:
@@ -97,9 +97,9 @@ class X:
         self._update_time = time.time()
 
         wid = self._wid[self._next_wid]
-        if wid is not None:
-            self.pi.wave_delete(wid)
-            self._wid[self._next_wid] = None
+        #if wid is not None:
+        #self.pi.wave_delete(wid)
+            #self._wid[self._next_wid] = None
 
     def update_channel(self, channel, width):
         self._widths[channel] = width
