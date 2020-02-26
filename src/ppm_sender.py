@@ -10,7 +10,7 @@ from std_msgs.msg import String
 
 class X:
     
-    WAVES=2
+    WAVES=5
     def __init__(self, pi, gpio, channels=8, frame_ms=33):
         self.pi = pi
         self.gpio = gpio
@@ -82,10 +82,9 @@ class X:
         self.pi.wave_add_generic(wf)
 
         wid = self.pi.wave_create()
-        #print(wid)
         self._update_time = time.time()
         self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT)
-        #self._wid[self._next_wid] = wid
+        self._wid[self._next_wid] = wid
         self._next_wid += 1
         if self._next_wid >= self.WAVES:
             self._next_wid = 0
@@ -93,10 +92,10 @@ class X:
         remaining = self._update_time + self._frame_secs - time.time()
         self.rate.sleep()
         
-        #wid = self._wid[self._next_wid]
-        #if wid is not None:
-        #    self.pi.wave_delete(wid)
-        #    self._wid[self._next_wid] = None
+        wid = self._wid[self._next_wid]
+        if wid is not None:
+            self.pi.wave_delete(wid)
+            self._wid[self._next_wid] = None
 
     def cancel(self):
         self.pi.wave_tx_stop()
