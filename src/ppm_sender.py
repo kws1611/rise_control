@@ -71,11 +71,10 @@ class X:
         wf =[]
         micros = 0
         self._update_time = time.time()
-        for i in self._widths:
+        for i in [self.ch1,self.ch2,self.ch3,self.ch4,1500,1500,1500,1500]:
             wf.append(pigpio.pulse(1<<self.gpio, 0, self.GAP))
             wf.append(pigpio.pulse(0, 1<<self.gpio, i-self.GAP))
             micros += i
-        # off for the remaining frame period
         wf.append(pigpio.pulse(1<<self.gpio, 0, self.GAP))
         micros += self.GAP
         wf.append(pigpio.pulse(0, 1<<self.gpio, self._frame_us - micros))
@@ -86,39 +85,24 @@ class X:
         #print(wid)
         self._update_time = time.time()
         self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT)
-        self._wid[self._next_wid] = wid
-        
-
+        #self._wid[self._next_wid] = wid
         self._next_wid += 1
         if self._next_wid >= self.WAVES:
             self._next_wid = 0
 
         remaining = self._update_time + self._frame_secs - time.time()
-        print(time.time() - self._update_time)
-        #time.sleep()
         self.rate.sleep()
         
-        wid = self._wid[self._next_wid]
-        if wid is not None:
-	    self.pi.wave_delete(wid)
-	    self._wid[self._next_wid] = None
-
-    def update_channel(self, channel, width):
-        self._widths[channel] = width
-        #self._update()
-
-    def update_channels(self, widths):
-        self._widths[0:len(widths)] = widths[0:self.channels]
-        self._update()
+        #wid = self._wid[self._next_wid]
+        #if wid is not None:
+        #    self.pi.wave_delete(wid)
+        #    self._wid[self._next_wid] = None
 
     def cancel(self):
         self.pi.wave_tx_stop()
         for i in self._wid:
             if i is not None:
                 self.pi.wave_delete(i)
-    def channel_value(self):
-        channel_value = [self.ch1,self.ch2,self.ch3,self.ch4,self.ch5,self.ch6,self.ch7,self.ch8]        
-        return channel_value
 
     def sending_process(self):
         self.sending_topic = ppm_msg()
@@ -126,8 +110,7 @@ class X:
         chan_2 = self.ch2
         chan_3 = self.ch3
         chan_4 = self.ch4
-	print(self.ch1, self.ch2)
-
+        """
         self._widths[0] = chan_1 + 500
         self._widths[1] = chan_2 + 500
         self._widths[2] = chan_3 + 500
@@ -136,24 +119,18 @@ class X:
         self._widths[5] = 1500
         self._widths[6] = 1500
         self._widths[7] = 1500
-        
+        """
         self._update()
-
-
-
 if __name__ == "__main__":
     rospy.init_node("ppm_sending", anonymous=True)
     rospy.loginfo("ppm_generating start")
     pi = pigpio.pi()
-
     try:
         if not pi.connected:
             exit(0)
         pi.wave_tx_stop() # Start with a clean slate.
         ppm = X(pi, 17, frame_ms=33)
         time.sleep(2)
-
-        
         while not rospy.is_shutdown():
             ppm.sending_process()                  
         
@@ -163,10 +140,6 @@ if __name__ == "__main__":
     except rospy.ROSInterruptException:
         print "ROS terminated"
         pass
-
-    #ppm.update_channels([1000, 2000, 1000, 2000, 1000, 2000, 1000, 2000])
-
-    #time.sleep(2)
 
 
 
