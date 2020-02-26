@@ -86,65 +86,21 @@ class X:
         self._update_time = time.time()
         self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT)
         self._wid[self._next_wid] = wid
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-        
-
->>>>>>> parent of 184960a... 2026-3
-=======
-        
-
->>>>>>> parent of 184960a... 2026-3
-        self._next_wid += 1
-        if self._next_wid >= self.WAVES:
-            self._next_wid = 0
-
-        remaining = self._update_time + self._frame_secs - time.time()
-        print(time.time() - self._update_time)
-        #time.sleep()
-        self.rate.sleep()
-        
-        wid = self._wid[self._next_wid]
-        if wid is not None:
-<<<<<<< HEAD
-<<<<<<< HEAD
-            self.pi.wave_delete(wid)
-            self._wid[self._next_wid] = None
-=======
-=======
->>>>>>> parent of 184960a... 2026-3
-	    self.pi.wave_delete(wid)
-	    self._wid[self._next_wid] = None
-
-    def update_channel(self, channel, width):
-        self._widths[channel] = width
-        #self._update()
-
-    def update_channels(self, widths):
-        self._widths[0:len(widths)] = widths[0:self.channels]
-        self._update()
-<<<<<<< HEAD
->>>>>>> parent of 184960a... 2026-3
-=======
->>>>>>> parent of 184960a... 2026-3
 
     def cancel(self):
         self.pi.wave_tx_stop()
         for i in self._wid:
             if i is not None:
                 self.pi.wave_delete(i)
-    def channel_value(self):
-        channel_value = [self.ch1,self.ch2,self.ch3,self.ch4,self.ch5,self.ch6,self.ch7,self.ch8]        
-        return channel_value
 
     def sending_process(self):
+        start_time = time.time()
         self.sending_topic = ppm_msg()
         chan_1 = self.ch1
         chan_2 = self.ch2
         chan_3 = self.ch3
         chan_4 = self.ch4
-	print(self.ch1, self.ch2)
+	    print(self.ch1, self.ch2)
 
         self._widths[0] = chan_1 + 500
         self._widths[1] = chan_2 + 500
@@ -154,10 +110,8 @@ class X:
         self._widths[5] = 1500
         self._widths[6] = 1500
         self._widths[7] = 1500
-        
+        print(start_time - time.time())
         self._update()
-
-
 
 if __name__ == "__main__":
     rospy.init_node("ppm_sending", anonymous=True)
@@ -181,10 +135,6 @@ if __name__ == "__main__":
     except rospy.ROSInterruptException:
         print "ROS terminated"
         pass
-
-    #ppm.update_channels([1000, 2000, 1000, 2000, 1000, 2000, 1000, 2000])
-
-    #time.sleep(2)
 
 
 
