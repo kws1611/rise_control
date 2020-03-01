@@ -82,7 +82,7 @@ class X:
         self.pi.wave_add_generic(wf)
         wid = self.pi.wave_create()
 
-        self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_ONE_SHOT_SYNC)
+        self.pi.wave_send_using_mode(wid, pigpio.WAVE_MODE_REPEAT_SYNC)
         self._wid[self._next_wid] = wid
 
         self._next_wid += 1
