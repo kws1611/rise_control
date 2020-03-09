@@ -46,6 +46,7 @@ class control:
         self.target_x = x
         self.target_y = y
         self.target_z = z
+        self.target_yaw = 0
 
         self.kp = 0.0
         self.ki = 0.0
@@ -80,7 +81,7 @@ class control:
         self.roll_I, self.pitch_I, self.yaw_I = 0.0, 0.0 , 0.0
         self.roll, self.pitch, self.yaw, self.throttle = 0.0, 0.0, 0.0, 0.0
         # Subscriber created
-        rospy.Subscriber("/vrpn_client_node/quad_imu_2/pose", PoseStamped, self.motion_cb)
+        #rospy.Subscriber("/vrpn_client_node/quad_imu_2/pose", PoseStamped, self.motion_cb)
         rospy.Subscriber("/input_ppm", ppm_msg, self.ppm_cb)
         self.controling_pub = rospy.Publisher("/control_signal", ppm_msg, queue_size=1)
 
@@ -117,9 +118,9 @@ class control:
         return value
 
     def controling_process(self):
-        self.pid()
+        #self.pid()
         self.channel_msg = ppm_msg()
-        self.channel_msg.header.stamp = time.time()
+        #self.channel_msg.header.stamp = time.time()
         if self.ch5 > 1350:
             self.channel_msg.channel_1 = self.ch1 + 500
             self.channel_msg.channel_2 = self.ch2 + 500
@@ -140,10 +141,10 @@ class control:
             self.channel_msg.channel_8 = self.ch8
 
         else :
-            self.channel_mag.channel_1 = self.ch1
-            self.channel_mag.channel_2 = self.ch2
-            self.channel_mag.channel_3 = self.ch3
-            self.channel_mag.channel_4 = self.ch4
+            self.channel_msg.channel_1 = self.ch1
+            self.channel_msg.channel_2 = self.ch2
+            self.channel_msg.channel_3 = self.ch3
+            self.channel_msg.channel_4 = self.ch4
             self.channel_msg.channel_5 = self.ch5
             self.channel_msg.channel_6 = self.ch6
             self.channel_msg.channel_7 = self.ch7
@@ -152,16 +153,16 @@ class control:
         self.controling_pub.publish(self.channel_msg)
 
 if __name__ == "__main__":
-	rospy.init_node("controlling_node", anonymous=True)
-	rospy.loginfo("control node initialized")
-	try:
-		rospy.loginfo("controling start!")
+    rospy.init_node("controlling_node", anonymous=True)
+    rospy.loginfo("control node initialized")
+    try:
+        rospy.loginfo("controling start!")
         drone_control = control(1,1,1)
         while not rospy.is_shutdown():
             drone_control.controling_process()
 
-	except rospy.ROSInterruptException:
-		print "ROS terminated"
-		pass
+    except rospy.ROSInterruptException:
+        print "ROS terminated"
+        pass
 
 
