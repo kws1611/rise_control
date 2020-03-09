@@ -121,33 +121,33 @@ class control:
         self.channel_msg = ppm_msg()
         self.channel_msg.header.stamp = time.time()
         if self.ch5 > 1350:
-            self.channel_msg.channnel_1 = self.ch1
-            self.channel_msg.channnel_2 = self.ch2
-            self.channel_msg.channnel_3 = self.ch3
-            self.channel_msg.channnel_4 = self.ch4
-            self.channel_msg.channnel_5 = self.ch5
-            self.channel_msg.channnel_6 = self.ch6
-            self.channel_msg.channnel_7 = self.ch7
-            self.channel_msg.channnel_8 = self.ch8
+            self.channel_msg.channel_1 = self.ch1 + 500
+            self.channel_msg.channel_2 = self.ch2 + 500
+            self.channel_msg.channel_3 = self.ch3 + 500
+            self.channel_msg.channel_4 = self.ch4 + 500
+            self.channel_msg.channel_5 = self.ch5
+            self.channel_msg.channel_6 = self.ch6
+            self.channel_msg.channel_7 = self.ch7
+            self.channel_msg.channel_8 = self.ch8
         elif self.ch5 < 700 :
-            self.channel_msg.channnel_1 = self.ch1
-            self.channel_msg.channnel_2 = self.ch2
-            self.channel_msg.channnel_3 = self.ch3
-            self.channel_msg.channnel_4 = self.ch4
-            self.channel_msg.channnel_5 = self.ch5
-            self.channel_msg.channnel_6 = self.ch6
-            self.channel_msg.channnel_7 = self.ch7
-            self.channel_msg.channnel_8 = self.ch8
+            self.channel_msg.channel_1 = self.ch1 - 500
+            self.channel_msg.channel_2 = self.ch2 - 500
+            self.channel_msg.channel_3 = self.ch3 - 500
+            self.channel_msg.channel_4 = self.ch4 - 500
+            self.channel_msg.channel_5 = self.ch5
+            self.channel_msg.channel_6 = self.ch6
+            self.channel_msg.channel_7 = self.ch7
+            self.channel_msg.channel_8 = self.ch8
 
         else :
-            self.channel_mag.channel_1 = self.pitch
-            self.channel_mag.channel_2 = self.roll
-            self.channel_mag.channel_3 = self.throttle
-            self.channel_mag.channel_4 = self.yaw
-            self.channel_msg.channnel_5 = self.ch5
-            self.channel_msg.channnel_6 = self.ch6
-            self.channel_msg.channnel_7 = self.ch7
-            self.channel_msg.channnel_8 = self.ch8
+            self.channel_mag.channel_1 = self.ch1
+            self.channel_mag.channel_2 = self.ch2
+            self.channel_mag.channel_3 = self.ch3
+            self.channel_mag.channel_4 = self.ch4
+            self.channel_msg.channel_5 = self.ch5
+            self.channel_msg.channel_6 = self.ch6
+            self.channel_msg.channel_7 = self.ch7
+            self.channel_msg.channel_8 = self.ch8
 
         self.controling_pub.publish(self.channel_msg)
 
