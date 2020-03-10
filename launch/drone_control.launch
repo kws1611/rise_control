@@ -1,0 +1,8 @@
+<launch>
+    <rosparam command="load" file="$(find rise_control)/config/drone_control.yaml" />
+
+    <node pkg="rise_conrtol" name="ppm_reader" type="ppm_reader.py" output="screen" />
+    <node pkg="rise_control" name="control" type="control.py" output="screen" />
+    <node pkg="rise_control" name="control_sender" type="control_sender.py" output="screen" />
+
+</launch>
