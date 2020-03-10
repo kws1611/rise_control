@@ -9,9 +9,9 @@ from rise_control.msg import ppm_msg
 from std_msgs.msg import String
 
 class PWM_read:
-    def __init__(self, pi, gpio):
+    def __init__(self, pi):
         self.pi = pi
-        self.gpio = gpio
+        self.gpio = rospy.get_param("input/gpio")
         self._high_tick = None
         self._p = None
         self._hp = None
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     pi = pigpio.pi()    
 
     try:
-        p1 = PWM_read(pi, 4)
+        p1 = PWM_read(pi)
         time.sleep(1)
         
         while not rospy.is_shutdown():

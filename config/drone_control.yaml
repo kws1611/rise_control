@@ -1,2 +1,8 @@
-first:
-	second	: 1
+channel_number:	8
+input:
+	gpio:	4
+
+
+
+output:
+	gpio:	17

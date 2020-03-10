@@ -11,17 +11,11 @@ from std_msgs.msg import String
 
 class X:
     WAVES = 8
-    def __init__(self, pi, gpio, channels=8, frame_ms=33):
+    def __init__(self, pi, frame_ms=33):
         self.pi = pi
-        self.gpio = gpio
+        self.gpio = rospy.get_param("output/gpio")
         self.rate = rospy.Rate(1000)
         self.GAP = 300
-
-        if frame_ms < 5:
-            frame_ms = 5
-            channels = 2
-        elif frame_ms > 100:
-            frame_ms = 100
 
         self.frame_ms = frame_ms
         self._frame_us = int(frame_ms * 1000)
@@ -36,14 +30,10 @@ class X:
         self.ch7 = 1000
         self.ch8 = 1000
 
-        if channels < 1:
-            channels = 1
-        elif channels > (frame_ms // 2):
-            channels = int(frame_ms // 2)
+        self.channels = rospy.get_param("channel_number")
 
-        self.channels = channels
 
-        self._widths = [1000] * channels  # set each channel to minimum pulse width
+        self._widths = [1000] * self.channels  # set each channel to minimum pulse width
         print(self._widths)
 
         self._wid = [None] * self.WAVES
@@ -139,7 +129,7 @@ if __name__ == "__main__":
         if not pi.connected:
             exit(0)
         pi.wave_tx_stop()  # Start with a clean slate.
-        ppm = X(pi, 17, frame_ms=20)
+        ppm = X(pi, frame_ms=20)
         time.sleep(2)
 
         while not rospy.is_shutdown():

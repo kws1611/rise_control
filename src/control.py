@@ -122,19 +122,19 @@ class control:
         self.channel_msg = ppm_msg()
         #self.channel_msg.header.stamp = time.time()
         if self.ch5 > 1350:
-            self.channel_msg.channel_1 = self.ch1 + 500
-            self.channel_msg.channel_2 = self.ch2 + 500
-            self.channel_msg.channel_3 = self.ch3 + 500
-            self.channel_msg.channel_4 = self.ch4 + 500
+            self.channel_msg.channel_1 = self.ch1 + 50
+            self.channel_msg.channel_2 = self.ch2 + 50
+            self.channel_msg.channel_3 = self.ch3 + 50
+            self.channel_msg.channel_4 = self.ch4 + 50
             self.channel_msg.channel_5 = self.ch5
             self.channel_msg.channel_6 = self.ch6
             self.channel_msg.channel_7 = self.ch7
             self.channel_msg.channel_8 = self.ch8
         elif self.ch5 < 700 :
-            self.channel_msg.channel_1 = self.ch1 - 500
-            self.channel_msg.channel_2 = self.ch2 - 500
-            self.channel_msg.channel_3 = self.ch3 - 500
-            self.channel_msg.channel_4 = self.ch4 - 500
+            self.channel_msg.channel_1 = self.ch1 - 50
+            self.channel_msg.channel_2 = self.ch2 - 50
+            self.channel_msg.channel_3 = self.ch3 - 50
+            self.channel_msg.channel_4 = self.ch4 - 50
             self.channel_msg.channel_5 = self.ch5
             self.channel_msg.channel_6 = self.ch6
             self.channel_msg.channel_7 = self.ch7
