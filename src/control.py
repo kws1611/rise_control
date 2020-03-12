@@ -8,15 +8,29 @@ from rise_control.msg import ppm_msg
 import numpy as np
 import time
 import math
+from math import atan2, asin, sqrt
 import numpy.linalg as lin
 import tf
+
+"""
+quaternion to matrix
+1-2*q2**2 - 2*q3**2 , 2*q1*q2 - 2*q3*q0 , 2*q1*q3 + 2*q2*q0
+2*q1*q2 + 2*q3*q0 , 1 - 2*q1**2 - 2*q3**2 , 2*q3*q2 - 2*q1*q0
+2*q1*q3 - 2*q2*q0 , 2*q2*q3 + 2*q1*q0 , 1-2*q1**2 -2*q2**2
+"""
 
 class control:
     def calculating_rpy(self,q0,q1,q2,q3):
         # calculating quaternion -> roll pitch yaw
-        roll = math.atan2(2*(q0*q1 + q2*q3),(1-2*(q1**2 + q2**2)))
-        pitch = math.asin(2*(q0*q2 - q3*q1))
-        yaw = math.atan2(2*(q0*q3 + q1*q2),1-2*(q2**2 + q3**2))
+        # euler angle is based on x-y-z order
+        quaternion_norm = math.sqrt(q0**2 + q1**2 + q2**2 + q3**2)
+        q0 = q0 / quaternion_norm
+        q1 = q1 / quaternion_norm
+        q2 = q2 / quaternion_norm
+        q3 = q3 / quaternion_norm
+        roll = math.atan2((-2*q3*q2 + 2*q1*q0),(1-2*q1**2 -2*q2**2))
+        pitch = math.asin(2*q1*q3 + 2*q2*q0)
+        yaw = math.atan2((-2*q1*q2 + 2*q3*q0),(1-2*q2**2 - 2*q3**2))
         return roll, pitch, yaw
 
     def motion_cb(self, msg):
@@ -85,40 +99,38 @@ class control:
         rospy.Subscriber("/input_ppm", ppm_msg, self.ppm_cb)
         self.controling_pub = rospy.Publisher("/control_signal", ppm_msg, queue_size=1)
 
-    def pid(self):
-        self.motion_roll,self.motion_pitch ,self.motion_yaw = self.calculating_rpy(self.motion_quat_w,self.motion_quat_x,self.motion_quat_y,self.motion_quat_z)
-        self.error_roll = -self.motion_roll
-        self.error_pitch = -self.motion_pitch
-        self.error_yaw = self.target_yaw - self.motion_yaw
+    def calculating_desired(self,x_des,y_des,z_des):
+        phi_desired = atan2(-y_des, z_des)
+        theta_desired = atan2(x_des, -y_des/sin(phi_desired))
+        throttle = z_des/(cos(phi_desired)*cos(theta_desired))
+
+        return phi_desired, theta_desired, throttle
+
+    def desired_accelation(self):
         self.error_x = self.target_x - self.motion_x
         self.error_y = self.target_y - self.motion_y
         self.error_z = self.target_z - self.motion_z
-        sequence = [self.error_x, self.error_y, self.error_z, self.error_roll, self.error_pitch, self.error_yaw]
-        sequence_2 = [self.prev_erroc_x, self.prev_erroc_y, self.prev_error_z, self.prev_roll, self.prev_pitch, self.prev_yaw]
-        sequence_3 = [self.x_I, self.y_I, self.z_I, self.roll_I, self.pitch_I, self.yaw_I]
+        self.x_I += self.error_x * self.dt
+        self.y_I += self.error_y * self.dt
+        self.z_I += self.error_z * self.dt
 
-        for i in rance(6):
-            sequence_3[i] = self.I_value_cal(sequence_3[i], sequence[i])
-            self.pid_cal(sequence[i],sequence_2[i],sequencd_3[i])
+        self.x_desired_accel = self.kp * self.error_x + self.kd * (self.error_x - self.prev_error_x)/self.dt + self.ki *(self.x_I)
+        self.y_desired_accel = self.kp * self.error_y + self.kd * (self.error_y - self.prev_error_y) / self.dt + self.ki * (self.y_I)
+        self.z_desired_accel = self.kp * self.error_z + self.kd * (self.error_z - self.prev_error_z) / self.dt + self.ki * (self.z_I)
 
-        self.x_I, self.y_I, self.z_I, self.roll_I, self.pitch_I, self.yaw_I = sequence_3[0],sequence_3[1],sequence_3[2],sequence_3[3],sequence_3[4],sequence_3[5]
-        self.prev_erroc_x, self.prev_error_y, self.prev_error_z = self.error_x,self.error_y, self.error_z
-        self.prev_roll, self.prev_pitch, self.prev_yaw = self.error_roll, self.error_pitch, self.error_yaw
-        self.yaw = self.error_yaw*1000 + 1500
-        self.pith = self.error_pitch*1000 + 1500
-        self.roll = self.error_roll*1000 + 1500
-        self.throttle = self.error_z*1000 + 600
+        self.prev_error_x, self.prev_error_y, self.prev_error_z = self.error_x, self.error_y, self.error_z
 
-    def I_value_cal(self, I,X):
-        I += self.ki * self.dt*X
-        return I
+        self.phi_desired ,self.theta_desired, self.throttle = self.calculating_desired(self.x_desired_accel,self.y_desired_accel,self.z_desired_accel)
 
-    def pid_cal(self, X, prev_X, I):
-        value = X*self.kp + I + self.kd*(X - prev_X)/self.dt
-        return value
+        self.x_tilt_value = self.phi_desired*50 + 1000
+        self.y_tilt_value = self.theta_desired*50 + 1000
+        self.throttle_value = self.throttle*50 + 250
+
+        return self.x_tilt_value, self.y_tilt_value, self.throttle_value
 
     def controling_process(self):
-        #self.pid()
+        #self.pid_ch2 , self.pid_ch1, self.pid_ch3 = self.desired_accelation
+        #self.pid_ch4 = 0.0
         self.channel_msg = ppm_msg()
         #self.channel_msg.header.stamp = time.time()
         if self.ch5 > 1350:
