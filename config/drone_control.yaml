@@ -1,8 +1,8 @@
-channel_number:	8
+channel_number        : 8
 input:
-	gpio:	4
+    gpio              : 4
 
 
 
 output:
-	gpio:	17
+    gpio              : 17
