@@ -11,9 +11,9 @@ from std_msgs.msg import String
 
 class X:
     WAVES = 8
-    def __init__(self, pi, frame_ms=33):
+    def __init__(self, pi, frame_ms=20):
         self.pi = pi
-        self.gpio = rospy.get_param("output/gpio")
+        self.gpio = 17#rospy.get_param("output/gpio")
         self.rate = rospy.Rate(1000)
         self.GAP = 300
 
@@ -30,7 +30,7 @@ class X:
         self.ch7 = 1000
         self.ch8 = 1000
 
-        self.channels = rospy.get_param("channel_number")
+        self.channels = 8#rospy.get_param("channel_number")
 
 
         self._widths = [1000] * self.channels  # set each channel to minimum pulse width
@@ -39,7 +39,7 @@ class X:
         self._wid = [None] * self.WAVES
         self._next_wid = 0
 
-        pi.write(gpio, pigpio.LOW)
+        pi.write(self.gpio, pigpio.LOW)
 
         self._update_time = time.time()
         rospy.Subscriber("/control_signal", ppm_msg, self.ppm_cb)
